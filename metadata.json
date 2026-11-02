@@ -1,0 +1,6 @@
+{
+  "name": "Centro de Medios y Archivos - Puerto Esperanza",
+  "description": "Sistema de gestión integral, resguardo documental y archivo físico-digital para las áreas comunitarias de Puerto Esperanza.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

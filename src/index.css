@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background-color: #F9F6EC;
+    color: #162B1F;
+  }
+
+  h1, h2, h3, .font-archival {
+    font-family: 'Cinzel', serif;
+    letter-spacing: 0.04em;
+  }
+
+  .font-mono-tag {
+    font-family: 'Space Mono', monospace;
+  }
+}
+
+/* Archival parchment card border */
+.border-archival {
+  border: 2px solid #0D472C;
+  outline: 1px solid rgba(13, 71, 44, 0.3);
+  outline-offset: 3px;
+}
+
+/* Print-specific layout for Folio QR label and loan receipts */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  #printable-folio-badge, #printable-folio-badge * {
+    visibility: visible;
+  }
+  #printable-folio-badge {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    margin: 0;
+    padding: 16px;
+    background: #FFFDF8 !important;
+    border: 3px solid #0D472C !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

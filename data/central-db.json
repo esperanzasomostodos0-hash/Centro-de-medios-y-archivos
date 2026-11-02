@@ -1,0 +1,210 @@
+{
+  "cma_pe_users_v7_prod": [
+    {
+      "id": "user-admin-almada",
+      "username": "49993070",
+      "passwordPin": "49993070",
+      "name": "Almada Eduardo Thomas",
+      "role": "ADMIN",
+      "position": "Coordinador General, Desarrollador Web y Administrador del Centro de Medios y Archivos",
+      "telefono": "03757-15499930",
+      "activo": true,
+      "creadoEn": "2026-10-19T00:00:00Z"
+    },
+    {
+      "id": "user-pablo-gonzalez",
+      "username": "pablo.gonzalez",
+      "passwordPin": "1234",
+      "name": "Pablo González",
+      "role": "CARGADOR_DATOS",
+      "assignedArea": "TECNOLOGÍA Y MEDIOS",
+      "position": "Equipo Fundador Centro de Medios y Archivos • Registro y Muebles",
+      "telefono": "03757-15433211",
+      "activo": true,
+      "creadoEn": "2026-10-19T00:00:00Z"
+    },
+    {
+      "id": "user-renzo-vazquez",
+      "username": "renzo.vazquez",
+      "passwordPin": "1234",
+      "name": "Renzo Vázquez",
+      "role": "CARGADOR_DATOS",
+      "assignedArea": "TECNOLOGÍA Y MEDIOS",
+      "position": "Equipo Fundador Centro de Medios y Archivos • Producción Técnica y Audiovisual",
+      "telefono": "03757-15433212",
+      "activo": true,
+      "creadoEn": "2026-10-19T00:00:00Z"
+    },
+    {
+      "id": "user-demian",
+      "username": "demian",
+      "passwordPin": "1234",
+      "name": "Demian",
+      "role": "CARGADOR_DATOS",
+      "assignedArea": "TECNOLOGÍA Y MEDIOS",
+      "position": "Equipo Fundador Centro de Medios y Archivos • Archivo y Custodia de Equipos",
+      "telefono": "03757-15433213",
+      "activo": true,
+      "creadoEn": "2026-10-19T00:00:00Z"
+    },
+    {
+      "id": "user-ezequiel-villalba",
+      "username": "ezequiel.villalba",
+      "passwordPin": "1234",
+      "name": "Ezequiel Villalba",
+      "role": "CARGADOR_DATOS",
+      "assignedArea": "DEPORTES Y ACCIÓN SOCIAL",
+      "position": "Coordinador de Deportes y Acción Social",
+      "telefono": "03757-15421001",
+      "activo": true,
+      "creadoEn": "2024-01-10T10:00:00Z"
+    },
+    {
+      "id": "user-micaela",
+      "username": "micaela",
+      "passwordPin": "1234",
+      "name": "Micaela",
+      "role": "CARGADOR_DATOS",
+      "assignedArea": "DEPORTES Y ACCIÓN SOCIAL",
+      "position": "Tallerista y Referente de Acción Social",
+      "telefono": "03757-15421002",
+      "activo": true,
+      "creadoEn": "2024-01-10T10:00:00Z"
+    },
+    {
+      "id": "user-cami-rodriguez",
+      "username": "cami.rodriguez",
+      "passwordPin": "1234",
+      "name": "Cami Rodríguez",
+      "role": "CARGADOR_DATOS",
+      "assignedArea": "CULTURA Y EVENTOS",
+      "position": "Gestión Cultural y Producción de Eventos",
+      "telefono": "03757-15510203",
+      "activo": true,
+      "creadoEn": "2024-01-12T10:00:00Z"
+    },
+    {
+      "id": "user-mariel-rozas",
+      "username": "mariel.rozas",
+      "passwordPin": "1234",
+      "name": "Mariel Rozas 👑",
+      "role": "SECRETARIO",
+      "assignedArea": "CULTURA Y EVENTOS",
+      "position": "Secretaria de Cultura y Muestras Artísticas",
+      "telefono": "03757-15510204",
+      "activo": true,
+      "creadoEn": "2024-01-12T10:00:00Z"
+    },
+    {
+      "id": "user-marcos-monzon",
+      "username": "marcos.monzon",
+      "passwordPin": "1234",
+      "name": "Marcos Monzon",
+      "role": "CARGADOR_DATOS",
+      "assignedArea": "AMBIENTE Y PROTECCIÓN ANIMAL",
+      "position": "Encargado de Ambiente y Huella Verde",
+      "telefono": "03757-15630304",
+      "activo": true,
+      "creadoEn": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "user-santi",
+      "username": "santi",
+      "passwordPin": "1234",
+      "name": "Santi",
+      "role": "SOLICITANTE",
+      "assignedArea": "AMBIENTE Y PROTECCIÓN ANIMAL",
+      "position": "Brigada Verde y Logística de Rescate Animal",
+      "telefono": "03757-15630305",
+      "activo": true,
+      "creadoEn": "2024-01-15T10:00:00Z"
+    },
+    {
+      "id": "user-celine-rodriguez",
+      "username": "celine.rodriguez",
+      "passwordPin": "1234",
+      "name": "Celine Rodriguez",
+      "role": "CARGADOR_DATOS",
+      "assignedArea": "PRENSA, REDES Y COMUNICACIÓN",
+      "position": "Diseño Gráfico, Prensa y Difusión Digital",
+      "telefono": "03757-15740405",
+      "activo": true,
+      "creadoEn": "2024-01-18T10:00:00Z"
+    },
+    {
+      "id": "user-visitante-comunidad",
+      "username": "visitante",
+      "passwordPin": "1234",
+      "name": "Consulta Comunitaria / Vecinos",
+      "role": "VISITANTE",
+      "position": "Consulta Pública de Talleres y Cartelera",
+      "activo": true,
+      "creadoEn": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "cma_pe_shelves_v7_prod": [
+    {
+      "id": "shelf-1",
+      "numero": 1,
+      "nombre": "Estante 1 - Coordinación General y Resoluciones",
+      "ubicacion": "Sede Central - Sector Administrativo A",
+      "descripcion": "Contiene los folios oficiales de reuniones, resoluciones, inventario patrimonial y proyectos centrales.",
+      "capacidadCarpetas": 15,
+      "foliosAsignados": ["Actas y reuniones", "Inventario", "Eventos", "Carteles", "Proyectos"],
+      "creadoEn": "2026-10-19"
+    },
+    {
+      "id": "shelf-2",
+      "numero": 2,
+      "nombre": "Estante 2 - Finanzas, Planificación y Registros",
+      "ubicacion": "Sede Central - Sector Administrativo B",
+      "descripcion": "Archivador seguro de facturación, balance contable, libro de entradas/salidas y planificación anual.",
+      "capacidadCarpetas": 15,
+      "foliosAsignados": ["Notas y resolucion", "Presupuesto recaudacion y balance", "Informe", "Planificacion", "Registro"],
+      "creadoEn": "2026-10-19"
+    },
+    {
+      "id": "shelf-3",
+      "numero": 3,
+      "nombre": "Estante 3 - Áreas Operativas Comunitarias",
+      "ubicacion": "Sede Central - Acceso Operativo",
+      "descripcion": "Resguardo de planillas de deportes, acción comunitaria, cultura, ambiente Huella Verde y medios de comunicación.",
+      "capacidadCarpetas": 15,
+      "foliosAsignados": ["Deportes", "Accion social", "Cultura y eventos", "Ambiente y proteccion animal", "Prensa redes y comunicacion"],
+      "creadoEn": "2026-10-19"
+    }
+  ],
+  "cma_pe_documents_v7_prod": [],
+  "cma_pe_kids_v7_prod": [],
+  "cma_pe_inventory_v7_prod": [],
+  "cma_pe_loans_v7_prod": [],
+  "cma_pe_requests_v7_prod": [],
+  "cma_pe_budget_v7_prod": [],
+  "cma_pe_events_v7_prod": [],
+  "cma_pe_inst_inventory_v7_prod": [],
+  "cma_pe_area_actas_v7_prod": [],
+  "cma_pe_notices_v7_prod": [],
+  "cma_pe_insc_forms_v7_prod": [],
+  "cma_pe_insc_subs_v7_prod": [],
+  "cma_pe_key_custody_v7_prod": [
+    {
+      "id": "key-init-1",
+      "fecha": "2026-10-19",
+      "hora": "09:00",
+      "responsableNombre": "Almada Eduardo Thomas",
+      "accion": "Apertura de Oficina",
+      "observaciones": "Apertura inicial y relevamiento de la habitación para el Centro de Medios y Archivos.",
+      "llaveEstado": "En Custodia de Almada"
+    }
+  ],
+  "cma_pe_audit_v7_prod": [
+    {
+      "id": "log-init-1",
+      "timestamp": "2026-10-19T09:00:00.000Z",
+      "userName": "Almada Eduardo Thomas",
+      "userRole": "ADMIN",
+      "action": "Apertura Institucional",
+      "details": "Puesta en marcha del Centro de Medios y Archivos de Puerto Esperanza."
+    }
+  ]
+}
