@@ -92,11 +92,11 @@ export interface AuditLogEntry {
 
 // BroadcastChannel for cross-tab live synchronization
 const syncChannel = typeof window !== 'undefined' && 'BroadcastChannel' in window 
-  ? new BroadcastChannel('cma_live_sync_v6') 
+  ? new BroadcastChannel('cma_live_sync_v7') 
   : null;
 
-let syncDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 let sseConnection: EventSource | null = null;
+let sseReconnectTimer: ReturnType<typeof setTimeout> | null = null;
 
 export class StorageService {
   private static getItem<T>(key: string, defaultValue: T): T {
@@ -110,104 +110,148 @@ export class StorageService {
     }
   }
 
-  private static setItem<T>(key: string, value: T): void {
+  private static setItem<T>(key: string, value: T, auditLog?: AuditLogEntry): void {
     try {
       localStorage.setItem(key, JSON.stringify(value));
-      // Notify current window
-      if (typeof window !== 'undefined') {
-        window.dispatchEvent(new CustomEvent('cma_data_changed', { detail: { key } }));
-      }
-      // Broadcast to other tabs
-      syncChannel?.postMessage({ type: 'DATA_UPDATE', key });
-      // Debounce sync with centralized backend
-      this.triggerServerSync();
     } catch (e) {
-      console.error(`Error writing ${key} to storage:`, e);
+      console.warn(`LocalStorage write warning for ${key}:`, e);
+    }
+
+    // Notify current window
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('cma_data_changed', { detail: { key, source: 'local' } }));
+    }
+
+    // Broadcast to other open tabs
+    syncChannel?.postMessage({ type: 'DATA_UPDATE', key });
+
+    // Instantly save to central Express database on server
+    if (typeof window !== 'undefined' && key !== STORAGE_KEYS.ACTIVE_SESSION) {
+      fetch('/api/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key, data: value, auditLog }),
+      }).catch((err) => {
+        console.warn(`Server instant save error for ${key}:`, err);
+      });
     }
   }
 
   /**
-   * Syncs local storage with the centralized Express server database
-   */
-  static triggerServerSync(): void {
-    if (typeof window === 'undefined') return;
-    if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
-    syncDebounceTimer = setTimeout(async () => {
-      try {
-        const fullPayload: Record<string, unknown> = {};
-        Object.entries(STORAGE_KEYS).forEach(([_, storageKey]) => {
-          if (storageKey !== STORAGE_KEYS.ACTIVE_SESSION) {
-            const val = localStorage.getItem(storageKey);
-            if (val) {
-              try { fullPayload[storageKey] = JSON.parse(val); } catch {}
-            }
-          }
-        });
-        await fetch('/api/sync', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(fullPayload),
-        }).catch(() => {});
-      } catch (e) {
-        // Silent network retry
-      }
-    }, 800);
-  }
-
-  /**
-   * Pulls latest central records from backend on startup or reconnection
+   * Pulls latest central records from backend database into client localStorage
    */
   static async pullLatestFromServer(): Promise<boolean> {
     if (typeof window === 'undefined') return false;
     try {
-      const res = await fetch('/api/sync');
+      const res = await fetch('/api/db');
       if (!res.ok) return false;
       const data = await res.json();
       if (data && typeof data === 'object') {
         let changed = false;
         Object.entries(data).forEach(([key, value]) => {
-          if (key && value && key !== STORAGE_KEYS.ACTIVE_SESSION) {
-            localStorage.setItem(key, JSON.stringify(value));
-            changed = true;
+          if (key && value !== undefined && key !== STORAGE_KEYS.ACTIVE_SESSION) {
+            const currentVal = localStorage.getItem(key);
+            const strVal = JSON.stringify(value);
+            if (currentVal !== strVal) {
+              try {
+                localStorage.setItem(key, strVal);
+                changed = true;
+              } catch (err) {
+                console.warn(`Error updating local cache for ${key}:`, err);
+              }
+            }
           }
         });
+
         if (changed) {
           window.dispatchEvent(new CustomEvent('cma_data_changed', { detail: { source: 'remote' } }));
         }
 
-        // Establish live push SSE stream across devices if not already active
-        if (!sseConnection && typeof EventSource !== 'undefined') {
-          try {
-            sseConnection = new EventSource('/api/sync/events');
-            sseConnection.onmessage = (event) => {
-              try {
-                const payload = JSON.parse(event.data);
-                if (payload.type === 'SYNC_UPDATE') {
-                  fetch('/api/sync')
-                    .then((r) => r.json())
-                    .then((latest) => {
-                      if (latest && typeof latest === 'object') {
-                        Object.entries(latest).forEach(([k, v]) => {
-                          if (k && v && k !== STORAGE_KEYS.ACTIVE_SESSION) {
-                            localStorage.setItem(k, JSON.stringify(v));
-                          }
-                        });
-                        window.dispatchEvent(new CustomEvent('cma_data_changed', { detail: { source: 'sse' } }));
-                      }
-                    })
-                    .catch(() => {});
-                }
-              } catch {}
-            };
-          } catch {}
-        }
-
+        // Ensure SSE connection is alive
+        this.ensureSSEConnection();
         return true;
       }
     } catch (e) {
       // Backend may be starting or offline
     }
     return false;
+  }
+
+  /**
+   * Maintains real-time push connection from server to update all devices instantly
+   */
+  static ensureSSEConnection(): void {
+    if (typeof window === 'undefined' || typeof EventSource === 'undefined') return;
+    if (sseConnection && sseConnection.readyState !== EventSource.CLOSED) return;
+
+    try {
+      sseConnection = new EventSource('/api/sync/events');
+
+      sseConnection.onmessage = (event) => {
+        try {
+          const payload = JSON.parse(event.data);
+          if (payload.type === 'SYNC_UPDATE') {
+            this.pullLatestFromServer();
+          }
+        } catch {}
+      };
+
+      sseConnection.onerror = () => {
+        if (sseConnection) {
+          sseConnection.close();
+          sseConnection = null;
+        }
+        if (sseReconnectTimer) clearTimeout(sseReconnectTimer);
+        sseReconnectTimer = setTimeout(() => {
+          this.ensureSSEConnection();
+        }, 4000);
+      };
+    } catch (err) {
+      console.warn('SSE connection initialization error:', err);
+    }
+  }
+
+  /**
+   * Centralized server authentication: works across all phones and devices instantly
+   */
+  static async authenticateAsync(username: string, passwordPin: string): Promise<UserProfile | null> {
+    const cleanUser = username.trim().toLowerCase();
+    const cleanPin = passwordPin.trim();
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: cleanUser, password: cleanPin }),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.user) {
+          // Immediately populate all central database keys into localStorage on this device
+          if (data.fullDB && typeof data.fullDB === 'object') {
+            Object.entries(data.fullDB).forEach(([key, value]) => {
+              if (key && value !== undefined && key !== STORAGE_KEYS.ACTIVE_SESSION) {
+                try {
+                  localStorage.setItem(key, JSON.stringify(value));
+                } catch {}
+              }
+            });
+          }
+
+          this.setActiveSession(data.user);
+          if (typeof window !== 'undefined') {
+            window.dispatchEvent(new CustomEvent('cma_data_changed', { detail: { source: 'login' } }));
+          }
+          return data.user as UserProfile;
+        }
+      }
+    } catch (e) {
+      console.warn('Server auth failed or device offline, trying local cache fallback:', e);
+    }
+
+    // Local fallback for offline mode
+    return this.authenticate(username, passwordPin);
   }
 
   // ================= USERS & AUTH =================
@@ -983,3 +1027,31 @@ export class StorageService {
     this.addAuditLog(user, 'Reinicio Profesional de Base', 'Base de datos limpia y lista para uso oficial del Centro de Medios y Archivos');
   }
 }
+
+// Automatic synchronization lifecycle for all devices
+if (typeof window !== 'undefined') {
+  // Pull immediately on startup
+  setTimeout(() => {
+    StorageService.pullLatestFromServer();
+  }, 50);
+
+  // When user returns to tab or unlocks phone screen
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      StorageService.pullLatestFromServer();
+    }
+  });
+
+  // When window receives focus
+  window.addEventListener('focus', () => {
+    StorageService.pullLatestFromServer();
+  });
+
+  // Background fallback poll every 8 seconds
+  setInterval(() => {
+    if (document.visibilityState === 'visible') {
+      StorageService.pullLatestFromServer();
+    }
+  }, 8000);
+}
+

@@ -33,6 +33,15 @@ export const UserManagementView: React.FC<UserManagementViewProps> = ({
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
 
+  React.useEffect(() => {
+    const handleSync = () => {
+      setUsers(StorageService.getUsers());
+      setAuditLogs(StorageService.getAuditLogs());
+    };
+    window.addEventListener('cma_data_changed', handleSync);
+    return () => window.removeEventListener('cma_data_changed', handleSync);
+  }, []);
+
   // Form states
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');

@@ -22,7 +22,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
   const [errorMsg, setErrorMsg] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
@@ -37,16 +37,19 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
 
     setIsLoading(true);
 
-    setTimeout(() => {
-      const authUser = StorageService.authenticate(username, password);
+    try {
+      const authUser = await StorageService.authenticateAsync(username, password);
       setIsLoading(false);
 
       if (authUser) {
         onLoginSuccess(authUser);
       } else {
-        setErrorMsg('Credenciales incorrectas. Verifique el usuario y la contraseña ingresados.');
+        setErrorMsg('Credenciales incorrectas. Verifique el D.N.I./usuario y la contraseña ingresados.');
       }
-    }, 200);
+    } catch {
+      setIsLoading(false);
+      setErrorMsg('Error de comunicación con la base central. Intente nuevamente.');
+    }
   };
 
   return (

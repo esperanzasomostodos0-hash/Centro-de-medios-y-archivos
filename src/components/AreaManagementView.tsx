@@ -37,6 +37,7 @@ import {
 } from '../types';
 import { OPERATIVE_AREAS } from '../data/mockData';
 import { StorageService } from '../services/storageService';
+import { uploadImageToServer, compressImageToDataUrl } from '../utils/imageUpload';
 
 interface AreaManagementViewProps {
   currentUser: UserProfile;
@@ -109,11 +110,20 @@ export const AreaManagementView: React.FC<AreaManagementViewProps> = ({
   const areaDocuments = useMemo(() => documents.filter((d) => d.areaOperativa === selectedArea), [documents, selectedArea]);
 
   // Handle Create Acta (encargado can upload/create, admin can create)
-  const handleSaveActa = (e: React.FormEvent) => {
+  const handleSaveActa = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!actaTitulo.trim()) {
       showNotification('error', 'El título o asunto del acta es obligatorio');
       return;
+    }
+
+    let finalFotoUrl = actaFotoUrl || undefined;
+    if (actaFotoUrl && actaFotoUrl.startsWith('data:image/')) {
+      try {
+        finalFotoUrl = await uploadImageToServer(actaFotoUrl, `acta_${Date.now()}.jpg`);
+      } catch (err) {
+        console.warn('Error uploading acta photo:', err);
+      }
     }
 
     const newActa: AreaActa = {
@@ -129,7 +139,7 @@ export const AreaManagementView: React.FC<AreaManagementViewProps> = ({
       acuerdosYResoluciones: actaAcuerdos.trim(),
       redactadaPor: currentUser.name,
       firmadaPorAdmin: isAdmin,
-      adjuntoFotoUrl: actaFotoUrl || undefined,
+      adjuntoFotoUrl: finalFotoUrl,
       creadaEn: new Date().toISOString(),
     };
 
@@ -509,6 +519,72 @@ export const AreaManagementView: React.FC<AreaManagementViewProps> = ({
                     placeholder="Detalle de resoluciones aprobadas, compromisos y tareas asignadas..."
                     className="w-full rounded-xl border border-gray-300 bg-white p-2.5 text-xs"
                   />
+                </div>
+
+                {/* Foto / Escaneo del Acta en Papel */}
+                <div className="rounded-xl border border-dashed border-gray-300 p-3 bg-gray-50/70">
+                  <span className="block font-bold text-gray-700 text-xs mb-1.5">
+                    Foto o Escaneo del Acta Firmada (Opcional)
+                  </span>
+
+                  {actaFotoUrl ? (
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={actaFotoUrl}
+                        alt="Acta foto"
+                        className="h-20 w-20 object-cover rounded-lg border border-emerald-500 shadow-xs"
+                      />
+                      <div>
+                        <span className="text-xs font-bold text-emerald-800 flex items-center gap-1">
+                          <Check className="h-4 w-4" /> Foto lista para guardar
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setActaFotoUrl(null)}
+                          className="mt-1 text-xs text-red-600 hover:underline font-bold flex items-center gap-1 cursor-pointer"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" /> Quitar foto
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <label className="flex items-center gap-1.5 rounded-lg bg-[#0D472C] px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-[#165B3A] transition cursor-pointer">
+                        <Camera className="h-3.5 w-3.5" />
+                        <span>Sacar Foto con Celular</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          capture="environment"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const compressed = await compressImageToDataUrl(file);
+                              setActaFotoUrl(compressed);
+                            }
+                          }}
+                          className="hidden"
+                        />
+                      </label>
+
+                      <label className="flex items-center gap-1.5 rounded-lg bg-white border border-gray-300 px-3 py-1.5 text-xs font-bold text-gray-700 shadow-2xs hover:bg-gray-50 transition cursor-pointer">
+                        <Upload className="h-3.5 w-3.5 text-[#0D472C]" />
+                        <span>Subir Archivo de Imagen</span>
+                        <input
+                          type="file"
+                          accept="image/*,.pdf"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              const compressed = await compressImageToDataUrl(file);
+                              setActaFotoUrl(compressed);
+                            }
+                          }}
+                          className="hidden"
+                        />
+                      </label>
+                    </div>
+                  )}
                 </div>
 
                 <div className="flex items-center justify-end gap-2 pt-2 border-t border-gray-200">

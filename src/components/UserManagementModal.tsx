@@ -33,6 +33,17 @@ export const UserManagementModal: React.FC<UserManagementModalProps> = ({
   const [isAddingUser, setIsAddingUser] = useState(false);
   const [editingUserId, setEditingUserId] = useState<string | null>(null);
 
+  React.useEffect(() => {
+    if (isOpen) {
+      setUsers(StorageService.getUsers());
+    }
+    const handleSync = () => {
+      setUsers(StorageService.getUsers());
+    };
+    window.addEventListener('cma_data_changed', handleSync);
+    return () => window.removeEventListener('cma_data_changed', handleSync);
+  }, [isOpen]);
+
   // Form states
   const [name, setName] = useState('');
   const [username, setUsername] = useState('');

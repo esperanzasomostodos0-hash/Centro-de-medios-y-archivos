@@ -169,10 +169,14 @@ export const Header: React.FC<HeaderProps> = ({
             CENTRO DE MEDIOS Y ARCHIVOS • PUERTO ESPERANZA
           </span>
           {/* Real-time Centralized sync badge */}
-          <span className="hidden sm:inline-flex items-center gap-1 text-[9px] bg-emerald-950/80 text-emerald-200 border border-emerald-700/60 px-2 py-0.5 rounded-full">
+          <button
+            onClick={() => StorageService.pullLatestFromServer()}
+            title="Sincronizar ahora con la base central"
+            className="inline-flex items-center gap-1 text-[9px] bg-emerald-950/80 hover:bg-emerald-900 text-emerald-200 border border-emerald-700/60 px-2 py-0.5 rounded-full cursor-pointer transition active:scale-95"
+          >
             <Cloud className="h-3 w-3 text-emerald-400" />
-            <span>Centralizado en Vivo</span>
-          </span>
+            <span className="hidden xs:inline">Base Única Sincronizada</span>
+          </button>
         </div>
 
         <div className="flex items-center gap-2 sm:gap-3">

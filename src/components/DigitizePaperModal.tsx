@@ -16,6 +16,7 @@ import {
 import { ArchiveDocument, UserProfile, OfficeFolioCategory, OfficeFolioInfo } from '../types';
 import { OFFICE_SHELF_FOLIOS } from '../data/mockData';
 import { canUserUploadToFolio, getAllowedFoliosForUser, isSecretarioOrAdmin } from '../utils/permissions';
+import { uploadImageToServer, compressImageToDataUrl } from '../utils/imageUpload';
 
 interface DigitizePaperModalProps {
   isOpen: boolean;
@@ -73,16 +74,17 @@ export const DigitizePaperModal: React.FC<DigitizePaperModalProps> = ({
     }
   };
 
-  const handlePhotoCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoCapture = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const result = event.target?.result as string;
-      setFotoPreview(result);
-    };
-    reader.readAsDataURL(file);
+    try {
+      // Downscale photo client-side immediately
+      const compressed = await compressImageToDataUrl(file);
+      setFotoPreview(compressed);
+    } catch (err) {
+      console.warn('Error reading file:', err);
+    }
   };
 
   const handleGenerateSampleScan = () => {
@@ -158,7 +160,7 @@ export const DigitizePaperModal: React.FC<DigitizePaperModalProps> = ({
     setFotoPreview(canvas.toDataURL('image/jpeg', 0.85));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
@@ -174,6 +176,16 @@ export const DigitizePaperModal: React.FC<DigitizePaperModalProps> = ({
     const isOperative = folioInfo?.categoriaTipo === 'OPERATIVO';
 
     const cleanCode = `FOLIO-${selectedFolio.substring(0, 3).toUpperCase()}-${anio}-${Date.now().toString().slice(-4)}`;
+
+    let finalFotoUrl: string | undefined = undefined;
+    if (fotoPreview) {
+      if (fotoPreview.startsWith('data:image/')) {
+        // Upload photo to central server so it is shared across all devices
+        finalFotoUrl = await uploadImageToServer(fotoPreview, `scan_${cleanCode}.jpg`);
+      } else {
+        finalFotoUrl = fotoPreview;
+      }
+    }
 
     const newDoc: ArchiveDocument = {
       id: 'doc-' + Date.now(),
@@ -207,16 +219,14 @@ export const DigitizePaperModal: React.FC<DigitizePaperModalProps> = ({
       descripcion: descripcion.trim() || `Papel archivado en el folio ${selectedFolio}.`,
       soporteFisico: 'Original Manuscrito',
       visibilidad: 'Uso Interno',
-      fotoUrl: fotoPreview || undefined,
+      fotoUrl: finalFotoUrl,
       etiquetas: [selectedFolio, numeroHoja, 'Oficina Puerto Esperanza'],
       creadoEn: new Date().toISOString(),
     };
 
-    setTimeout(() => {
-      onSavePaper(newDoc);
-      setIsSubmitting(false);
-      onClose();
-    }, 150);
+    onSavePaper(newDoc);
+    setIsSubmitting(false);
+    onClose();
   };
 
   if (!isOpen) return null;

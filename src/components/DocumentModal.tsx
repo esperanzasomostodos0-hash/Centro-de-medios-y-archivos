@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, FileText, Check, AlertCircle, Sparkles, MapPin } from 'lucide-react';
+import { X, FileText, Check, AlertCircle, Sparkles, MapPin, Camera, Upload, Trash2 } from 'lucide-react';
 import { 
   ArchiveDocument, 
   OperativeArea, 
@@ -9,6 +9,7 @@ import {
 } from '../types';
 import { OPERATIVE_AREAS, ADMINISTRATIVE_TYPES } from '../data/mockData';
 import { StorageService } from '../services/storageService';
+import { uploadImageToServer, compressImageToDataUrl } from '../utils/imageUpload';
 
 interface DocumentModalProps {
   isOpen: boolean;
@@ -44,6 +45,7 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
   const [visibilidad, setVisibilidad] = useState<ArchiveDocument['visibilidad']>('Uso Interno');
   const [selectedKids, setSelectedKids] = useState<string[]>([]);
   const [etiquetasText, setEtiquetasText] = useState<string>('');
+  const [fotoUrl, setFotoUrl] = useState<string | null>(initialDoc?.fotoUrl || null);
   const [errorMsg, setErrorMsg] = useState<string>('');
 
   // Selected administrative type metadata with WhatsApp subitems
@@ -64,6 +66,7 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
       setVisibilidad(initialDoc.visibilidad);
       setSelectedKids(initialDoc.chicosVinculados || []);
       setEtiquetasText(initialDoc.etiquetas.join(', '));
+      setFotoUrl(initialDoc.fotoUrl || null);
     } else {
       const assigned = (currentUser.role === 'CARGADOR_DATOS' && currentUser.assignedArea)
         ? (currentUser.assignedArea as OperativeArea)
@@ -78,6 +81,7 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
       setTitulo('');
       setAutor(currentUser.name);
       setDescripcion('');
+      setFotoUrl(null);
       setSoporteFisico('Expediente Cosido');
       setVisibilidad('Uso Interno');
       setSelectedKids([]);
@@ -113,7 +117,7 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!titulo.trim()) {
@@ -123,6 +127,15 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
 
     const finalEstante = estanteFisico.trim() || 'Estante 1 - Balda A';
     const finalCodigo = codigoFolio.trim() || StorageService.generateFolioCode(areaOperativa, tipoAdministrativo, anio);
+
+    let finalFotoUrl = fotoUrl || undefined;
+    if (fotoUrl && fotoUrl.startsWith('data:image/')) {
+      try {
+        finalFotoUrl = await uploadImageToServer(fotoUrl, `doc_${finalCodigo}.jpg`);
+      } catch (err) {
+        console.warn('Error uploading doc photo:', err);
+      }
+    }
 
     const doc: ArchiveDocument = {
       id: initialDoc ? initialDoc.id : 'doc-' + Date.now(),
@@ -139,6 +152,7 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
       soporteFisico,
       visibilidad,
       chicosVinculados: selectedKids,
+      fotoUrl: finalFotoUrl,
       etiquetas: etiquetasText
         .split(',')
         .map((t) => t.trim())
@@ -418,6 +432,72 @@ export const DocumentModal: React.FC<DocumentModalProps> = ({
               placeholder="Ej: Torneo, Vacunación, Asistencia, Presupuesto"
               className="w-full rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-[#0D472C]"
             />
+          </div>
+
+          {/* Foto del documento / Folio físico */}
+          <div className="rounded-xl border border-dashed border-gray-300 p-3 bg-gray-50/70">
+            <span className="block font-bold text-gray-700 text-xs mb-1.5">
+              Fotografía o Imagen del Documento Físico
+            </span>
+
+            {fotoUrl ? (
+              <div className="flex items-center gap-3">
+                <img
+                  src={fotoUrl}
+                  alt="Foto documento"
+                  className="h-20 w-20 object-cover rounded-lg border border-emerald-500 shadow-xs"
+                />
+                <div>
+                  <span className="text-xs font-bold text-emerald-800 flex items-center gap-1">
+                    <Check className="h-4 w-4" /> Imagen vinculada
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setFotoUrl(null)}
+                    className="mt-1 text-xs text-red-600 hover:underline font-bold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" /> Quitar imagen
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-wrap items-center gap-2">
+                <label className="flex items-center gap-1.5 rounded-lg bg-[#0D472C] px-3 py-1.5 text-xs font-bold text-white shadow-xs hover:bg-[#165B3A] transition cursor-pointer">
+                  <Camera className="h-3.5 w-3.5" />
+                  <span>Sacar Foto con Celular</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const compressed = await compressImageToDataUrl(file);
+                        setFotoUrl(compressed);
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </label>
+
+                <label className="flex items-center gap-1.5 rounded-lg bg-white border border-gray-300 px-3 py-1.5 text-xs font-bold text-gray-700 shadow-2xs hover:bg-gray-50 transition cursor-pointer">
+                  <Upload className="h-3.5 w-3.5 text-[#0D472C]" />
+                  <span>Subir Imagen</span>
+                  <input
+                    type="file"
+                    accept="image/*,.pdf"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (file) {
+                        const compressed = await compressImageToDataUrl(file);
+                        setFotoUrl(compressed);
+                      }
+                    }}
+                    className="hidden"
+                  />
+                </label>
+              </div>
+            )}
           </div>
 
           <div className="flex items-center justify-end gap-3 pt-4 border-t border-[#0D472C]/20">

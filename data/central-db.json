@@ -150,7 +150,13 @@
       "ubicacion": "Sede Central - Sector Administrativo A",
       "descripcion": "Contiene los folios oficiales de reuniones, resoluciones, inventario patrimonial y proyectos centrales.",
       "capacidadCarpetas": 15,
-      "foliosAsignados": ["Actas y reuniones", "Inventario", "Eventos", "Carteles", "Proyectos"],
+      "foliosAsignados": [
+        "Actas y reuniones",
+        "Inventario",
+        "Eventos",
+        "Carteles",
+        "Proyectos"
+      ],
       "creadoEn": "2026-10-19"
     },
     {
@@ -160,7 +166,13 @@
       "ubicacion": "Sede Central - Sector Administrativo B",
       "descripcion": "Archivador seguro de facturación, balance contable, libro de entradas/salidas y planificación anual.",
       "capacidadCarpetas": 15,
-      "foliosAsignados": ["Notas y resolucion", "Presupuesto recaudacion y balance", "Informe", "Planificacion", "Registro"],
+      "foliosAsignados": [
+        "Notas y resolucion",
+        "Presupuesto recaudacion y balance",
+        "Informe",
+        "Planificacion",
+        "Registro"
+      ],
       "creadoEn": "2026-10-19"
     },
     {
@@ -170,7 +182,13 @@
       "ubicacion": "Sede Central - Acceso Operativo",
       "descripcion": "Resguardo de planillas de deportes, acción comunitaria, cultura, ambiente Huella Verde y medios de comunicación.",
       "capacidadCarpetas": 15,
-      "foliosAsignados": ["Deportes", "Accion social", "Cultura y eventos", "Ambiente y proteccion animal", "Prensa redes y comunicacion"],
+      "foliosAsignados": [
+        "Deportes",
+        "Accion social",
+        "Cultura y eventos",
+        "Ambiente y proteccion animal",
+        "Prensa redes y comunicacion"
+      ],
       "creadoEn": "2026-10-19"
     }
   ],
@@ -198,6 +216,14 @@
     }
   ],
   "cma_pe_audit_v7_prod": [
+    {
+      "id": "log-1793666713962",
+      "timestamp": "2026-11-03T00:45:13.962Z",
+      "userName": "Almada Eduardo Thomas",
+      "userRole": "ADMIN",
+      "action": "Inicio de Sesión",
+      "details": "Ingreso desde dispositivo al Centro de Medios y Archivos (curl/7.88.1)"
+    },
     {
       "id": "log-init-1",
       "timestamp": "2026-10-19T09:00:00.000Z",

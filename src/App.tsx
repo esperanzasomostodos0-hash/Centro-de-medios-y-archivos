@@ -78,7 +78,18 @@ export default function App() {
       try {
         setNotices(StorageService.getNotices());
       } catch {}
-      setAllUsers(StorageService.getUsers());
+      const latestUsers = StorageService.getUsers();
+      setAllUsers(latestUsers);
+
+      // Keep active session user in sync if their role or area was edited
+      const currentActive = StorageService.getActiveSession();
+      if (currentActive) {
+        const fresh = latestUsers.find((u) => u.id === currentActive.id || u.username.toLowerCase() === currentActive.username.toLowerCase());
+        if (fresh && (fresh.role !== currentActive.role || fresh.assignedArea !== currentActive.assignedArea || fresh.name !== currentActive.name)) {
+          StorageService.setActiveSession(fresh);
+          setCurrentUser(fresh);
+        }
+      }
     };
 
     window.addEventListener('cma_data_changed', refreshData);
